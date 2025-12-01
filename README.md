@@ -1,4 +1,4 @@
-# React & Node - Full ECommerce Site
+# NovaStore - React & Node - Full ECommerce Site
 
 ### Technologies Used :
 
