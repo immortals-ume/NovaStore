@@ -23,7 +23,7 @@ const userRoutes = Router()
 
 const productRoutes = Router()
   .get('/', validate(products.listQuerySchema, 'query'), products.list)
-  .get('/categories', products.categories)
+  .get('/catalog', products.catalog)
   .get('/:id', validateId(), products.getById)
   .post('/', requireAuth, requireAdmin, validate(products.productSchema), products.create)
   .put('/:id', requireAuth, requireAdmin, validateId(), validate(products.productSchema), products.update)

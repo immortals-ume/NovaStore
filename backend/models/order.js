@@ -29,6 +29,7 @@ const orderItemSchema = new mongoose.Schema({
   image: { type: String, required: true },
   price: { type: Number, required: true, min: 0 },
   qty: { type: Number, required: true, min: 1 },
+  size: String,
 });
 
 const orderSchema = new mongoose.Schema(

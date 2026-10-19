@@ -90,6 +90,23 @@ describe('orders', () => {
     assert.equal((await Product.findById(product.id)).countInStock, 1);
   });
 
+  it('requires an available size for sized products and keeps sizes per line', async () => {
+    const tee = await createProduct({ sizes: ['S', 'M'], countInStock: 10 });
+    const user = await createUser();
+
+    await placeOrder(user, [{ product: tee.id, qty: 1 }]).expect(400);
+    await placeOrder(user, [{ product: tee.id, qty: 1, size: 'XL' }]).expect(400);
+
+    const { body } = await placeOrder(user, [
+      { product: tee.id, qty: 1, size: 'S' },
+      { product: tee.id, qty: 2, size: 'M' },
+      { product: tee.id, qty: 1, size: 'S' },
+    ]).expect(201);
+    const lines = body.data.orderItems.map(({ size, qty }) => `${size}x${qty}`).sort();
+    assert.deepEqual(lines, ['Mx2', 'Sx2']);
+    assert.equal((await Product.findById(tee.id)).countInStock, 6);
+  });
+
   it('validates order input', async () => {
     const user = await createUser();
     await placeOrder(user, []).expect(400);

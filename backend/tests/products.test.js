@@ -7,7 +7,10 @@ const newProduct = {
   price: 59,
   image: '/images/p2.jpg',
   brand: 'Coastline',
-  category: 'Shirts',
+  department: 'women',
+  category: 'shirts',
+  sizes: ['S', 'M'],
+  color: 'White',
   countInStock: 3,
   description: 'Cool and light.',
 };
@@ -21,11 +24,11 @@ describe('products', () => {
   });
 
   it('filters, sorts, paginates and treats search text literally', async () => {
-    await createProduct({ name: 'Cheap Tee', price: 10 });
-    await createProduct({ name: 'Fancy (Tee)', price: 90 });
-    await createProduct({ name: 'Chinos', price: 50, category: 'Pants' });
+    await createProduct({ name: 'Cheap Tee', price: 10, sizes: ['S'] });
+    await createProduct({ name: 'Fancy (Tee)', price: 90, brand: 'Atelier' });
+    await createProduct({ name: 'Chinos', price: 50, category: 'trousers', department: 'women' });
 
-    const shirts = await api().get('/api/products?category=Shirts&sortOrder=lowest').expect(200);
+    const shirts = await api().get('/api/products?category=shirts&sortOrder=lowest').expect(200);
     assert.deepEqual(shirts.body.map((p) => p.name), ['Cheap Tee', 'Fancy (Tee)']);
     assert.equal(shirts.body[0].reviews, undefined);
 
@@ -37,8 +40,28 @@ describe('products', () => {
     assert.equal(page.headers['x-total-count'], '3');
     assert.equal(page.headers['x-page-count'], '2');
 
-    const categories = await api().get('/api/products/categories').expect(200);
-    assert.deepEqual(categories.body, ['Pants', 'Shirts']);
+    const filtered = await api().get('/api/products?department=men&minPrice=5&maxPrice=50&size=S').expect(200);
+    assert.deepEqual(filtered.body.map((p) => p.name), ['Cheap Tee']);
+
+    const byBrand = await api().get('/api/products?searchKeyword=atelier').expect(200);
+    assert.deepEqual(byBrand.body.map((p) => p.name), ['Fancy (Tee)']);
+
+    await api().get('/api/products?category=Pants').expect(400);
+  });
+
+  it('describes the clothing catalog with live counts', async () => {
+    await createProduct({ department: 'women', category: 'dresses' });
+    await createProduct({ department: 'women', category: 'dresses' });
+    await createProduct({ department: 'kids', category: 'tops' });
+
+    const { body } = await api().get('/api/products/catalog').expect(200);
+    const women = body.departments.find((d) => d.slug === 'women');
+    const men = body.departments.find((d) => d.slug === 'men');
+    assert.equal(women.count, 2);
+    assert.equal(women.categories.find((c) => c.slug === 'dresses').count, 2);
+    assert.equal(men.categories.some((c) => c.slug === 'dresses'), false);
+    assert.equal(body.categories.find((c) => c.slug === 'tops').count, 1);
+    assert.ok(body.sizes.includes('M'));
   });
 
   it('restricts catalog changes to admins and validates input', async () => {
@@ -48,6 +71,8 @@ describe('products', () => {
     await api().post('/api/products').send(newProduct).expect(401);
     await api().post('/api/products').set(user.auth).send(newProduct).expect(403);
     await api().post('/api/products').set(admin.auth).send({ ...newProduct, price: -5 }).expect(400);
+    await api().post('/api/products').set(admin.auth).send({ ...newProduct, department: 'men', category: 'dresses' }).expect(400);
+    await api().post('/api/products').set(admin.auth).send({ ...newProduct, sizes: ['Huge'] }).expect(400);
 
     const created = await api().post('/api/products').set(admin.auth).send({ ...newProduct, rating: 5, numReviews: 999 }).expect(201);
     assert.equal(created.body.data.rating, 0);

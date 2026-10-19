@@ -1,26 +1,48 @@
 import { z } from 'zod';
 import Product from '../models/product.js';
 import { conflict, notFound } from '../lib/httpError.js';
+import {
+  CATEGORIES,
+  CATEGORY_SLUGS,
+  DEPARTMENTS,
+  DEPARTMENT_SLUGS,
+  SIZES,
+  categoryAllowedIn,
+} from '../lib/catalog.js';
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const optionalEnum = (values) => z.enum(['', ...values]).optional().default('');
+
 export const listQuerySchema = z.object({
-  category: z.string().trim().max(60).optional().default(''),
+  department: optionalEnum(DEPARTMENT_SLUGS),
+  category: optionalEnum(CATEGORY_SLUGS),
+  size: optionalEnum(SIZES),
+  minPrice: z.coerce.number().min(0).optional(),
+  maxPrice: z.coerce.number().min(0).optional(),
   searchKeyword: z.string().trim().max(100).optional().default(''),
   sortOrder: z.enum(['', 'newest', 'lowest', 'highest', 'rating']).optional().default(''),
   page: z.coerce.number().int().min(1).optional().default(1),
   pageSize: z.coerce.number().int().min(1).max(100).optional().default(50),
 });
 
-export const productSchema = z.object({
-  name: z.string().trim().min(1).max(200),
-  price: z.coerce.number().min(0).max(1_000_000),
-  image: z.string().trim().min(1).max(500),
-  brand: z.string().trim().min(1).max(100),
-  category: z.string().trim().min(1).max(60),
-  countInStock: z.coerce.number().int().min(0).max(1_000_000),
-  description: z.string().trim().min(1).max(5000),
-});
+export const productSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200),
+    price: z.coerce.number().min(0).max(1_000_000),
+    image: z.string().trim().min(1).max(500),
+    brand: z.string().trim().min(1).max(100),
+    department: z.enum(DEPARTMENT_SLUGS),
+    category: z.enum(CATEGORY_SLUGS),
+    sizes: z.array(z.enum(SIZES)).max(SIZES.length).optional().default([]),
+    color: z.string().trim().max(40).optional(),
+    countInStock: z.coerce.number().int().min(0).max(1_000_000),
+    description: z.string().trim().min(1).max(5000),
+  })
+  .refine((p) => categoryAllowedIn(p.category, p.department), {
+    message: 'This category is not available in the selected department.',
+    path: ['category'],
+  });
 
 export const reviewSchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
@@ -37,10 +59,17 @@ const SORTS = {
 
 // The body stays a plain array for compatibility; paging info is sent in headers.
 export const list = async (req, res) => {
-  const { category, searchKeyword, sortOrder, page, pageSize } = req.validatedQuery;
+  const { department, category, size, minPrice, maxPrice, searchKeyword, sortOrder, page, pageSize } =
+    req.validatedQuery;
+  const search = searchKeyword && { $regex: escapeRegex(searchKeyword), $options: 'i' };
   const filter = {
+    ...(department && { department }),
     ...(category && { category }),
-    ...(searchKeyword && { name: { $regex: escapeRegex(searchKeyword), $options: 'i' } }),
+    ...(size && { sizes: size }),
+    ...((minPrice != null || maxPrice != null) && {
+      price: { ...(minPrice != null && { $gte: minPrice }), ...(maxPrice != null && { $lte: maxPrice }) },
+    }),
+    ...(search && { $or: [{ name: search }, { brand: search }] }),
   };
   const [products, total] = await Promise.all([
     Product.find(filter)
@@ -59,8 +88,29 @@ export const list = async (req, res) => {
   res.send(products);
 };
 
-export const categories = async (_req, res) => {
-  res.send((await Product.distinct('category')).sort());
+// The full taxonomy with live product counts, used to build store navigation.
+export const catalog = async (_req, res) => {
+  const counts = await Product.aggregate([
+    { $group: { _id: { department: '$department', category: '$category' }, count: { $sum: 1 } } },
+  ]);
+  const countOf = (department, category) =>
+    counts
+      .filter(({ _id }) => (!department || _id.department === department) && (!category || _id.category === category))
+      .reduce((sum, { count }) => sum + count, 0);
+
+  res.send({
+    departments: DEPARTMENTS.map((d) => ({
+      ...d,
+      count: countOf(d.slug),
+      categories: CATEGORIES.filter((c) => c.departments.includes(d.slug)).map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        count: countOf(d.slug, c.slug),
+      })),
+    })),
+    categories: CATEGORIES.map((c) => ({ ...c, count: countOf(null, c.slug) })),
+    sizes: SIZES,
+  });
 };
 
 export const getById = async (req, res) => {

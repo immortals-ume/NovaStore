@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { CATEGORY_SLUGS, DEPARTMENT_SLUGS, SIZES } from '../lib/catalog.js';
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -16,7 +17,10 @@ const productSchema = new mongoose.Schema(
     image: { type: String, required: true },
     brand: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
-    category: { type: String, required: true, trim: true, index: true },
+    department: { type: String, required: true, enum: DEPARTMENT_SLUGS, index: true },
+    category: { type: String, required: true, enum: CATEGORY_SLUGS, index: true },
+    sizes: { type: [{ type: String, enum: SIZES }], default: [] },
+    color: { type: String, trim: true, maxlength: 40 },
     countInStock: { type: Number, required: true, min: 0, default: 0 },
     description: { type: String, required: true },
     rating: { type: Number, required: true, default: 0, min: 0, max: 5 },

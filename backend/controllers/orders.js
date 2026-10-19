@@ -7,13 +7,20 @@ import { badRequest, conflict, notFound } from '../lib/httpError.js';
 import { priceOrder } from '../services/pricing.js';
 import { reserveStock, restock } from '../services/inventory.js';
 import { verifyPayment } from '../services/paypal.js';
+import { SIZES } from '../lib/catalog.js';
 
 const text = z.string().trim().min(1).max(200);
 
 // Only product ids and quantities are trusted; names, images and prices come from the database.
 export const createSchema = z.object({
   orderItems: z
-    .array(z.object({ product: objectId, qty: z.coerce.number().int().min(1).max(100) }))
+    .array(
+      z.object({
+        product: objectId,
+        qty: z.coerce.number().int().min(1).max(100),
+        size: z.enum(SIZES).optional(),
+      }),
+    )
     .min(1, 'Your cart is empty.')
     .max(50),
   shipping: z.object({ address: text, city: text, postalCode: text, country: text }),
@@ -32,20 +39,32 @@ const findAccessibleOrder = async (req) => {
 export const create = async (req, res) => {
   const { orderItems, shipping, payment } = req.body;
 
-  const quantities = new Map();
-  for (const { product, qty } of orderItems) {
-    quantities.set(product, (quantities.get(product) ?? 0) + qty);
-  }
-  const products = await Product.find({ _id: { $in: [...quantities.keys()] } }).lean();
-  if (products.length !== quantities.size) throw badRequest('Some products in your cart no longer exist.');
+  const productIds = [...new Set(orderItems.map((item) => item.product))];
+  const products = new Map(
+    (await Product.find({ _id: { $in: productIds } }).lean()).map((p) => [String(p._id), p]),
+  );
+  if (products.size !== productIds.length) throw badRequest('Some products in your cart no longer exist.');
 
-  const items = products.map((p) => ({
-    product: p._id,
-    name: p.name,
-    image: p.image,
-    price: p.price,
-    qty: quantities.get(String(p._id)),
-  }));
+  // Merge duplicate product/size lines, then copy trusted details from the catalog.
+  const lines = new Map();
+  for (const { product: id, qty, size } of orderItems) {
+    const product = products.get(id);
+    if (product.sizes?.length && !product.sizes.includes(size)) {
+      throw badRequest(`Choose an available size for "${product.name}".`);
+    }
+    const key = `${id}:${size ?? ''}`;
+    const line = lines.get(key) ?? {
+      product: product._id,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      size: product.sizes?.length ? size : undefined,
+      qty: 0,
+    };
+    line.qty += qty;
+    lines.set(key, line);
+  }
+  const items = [...lines.values()];
 
   const release = await reserveStock(items);
   try {

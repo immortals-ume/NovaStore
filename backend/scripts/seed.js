@@ -1,18 +1,19 @@
 // Creates the admin account and, when the catalog is empty, sample products.
-// Usage: ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='long-secret' npm run seed
+// Usage: ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='long-secret' npm run seed [-- --reset-products]
 import mongoose from 'mongoose';
 import config from '../config.js';
 import User from '../models/user.js';
 import Product from '../models/product.js';
+import { PRODUCTS } from './catalogData.js';
 
-const sampleProducts = [
-  { name: 'Classic Oxford Shirt', category: 'Shirts', brand: 'Nova Basics', price: 49, countInStock: 25, image: '/images/p1.jpg', description: 'Crisp cotton oxford with a button-down collar. Works from desk to dinner.' },
-  { name: 'Linen Camp Shirt', category: 'Shirts', brand: 'Coastline', price: 59, countInStock: 18, image: '/images/p2.jpg', description: 'Breathable linen in a relaxed fit, made for warm days.' },
-  { name: 'Slim Stretch Tee', category: 'Shirts', brand: 'Nova Basics', price: 24, countInStock: 60, image: '/images/p3.jpg', description: 'Soft cotton-elastane tee that keeps its shape wash after wash.' },
-  { name: 'Tapered Chinos', category: 'Pants', brand: 'Urban Thread', price: 69, countInStock: 30, image: '/images/d1.jpg', description: 'Everyday chinos with a modern tapered leg and a touch of stretch.' },
-  { name: 'Relaxed Denim', category: 'Pants', brand: 'Indigo Mill', price: 89, countInStock: 22, image: '/images/d2.jpg', description: 'Mid-weight denim in a relaxed straight fit, garment washed for softness.' },
-  { name: 'Tech Joggers', category: 'Pants', brand: 'Coastline', price: 79, countInStock: 0, image: '/images/d3.jpg', description: 'Water-repellent joggers with zip pockets for travel and training.' },
-];
+// Interleave departments so "newest" listings show a mix rather than one department.
+const byDepartment = Object.groupBy(PRODUCTS, (p) => p.department);
+const longest = Math.max(...Object.values(byDepartment).map((list) => list.length));
+const sampleProducts = Array.from({ length: longest }, (_, i) => Object.values(byDepartment).map((list) => list[longest - 1 - i]))
+  .flat()
+  .filter(Boolean)
+  .map(({ colorKey: _colorKey, ...product }) => product);
+const resetProducts = process.argv.includes('--reset-products');
 
 const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME = 'Store Admin' } = process.env;
 
@@ -30,6 +31,10 @@ try {
     console.log('Skipping admin: set ADMIN_EMAIL and ADMIN_PASSWORD to create one.');
   }
 
+  if (resetProducts) {
+    const { deletedCount } = await Product.deleteMany({});
+    console.log(`Removed ${deletedCount} existing products.`);
+  }
   if (await Product.estimatedDocumentCount()) {
     console.log('Products already exist, skipping sample catalog.');
   } else {
