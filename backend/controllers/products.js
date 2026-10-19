@@ -10,8 +10,18 @@ import {
   categoryAllowedIn,
 } from '../lib/catalog.js';
 
+/**
+ * Escapes regex special characters so user search text is matched literally.
+ * @param {string} text - Raw search text.
+ * @returns {string} Text safe to use inside a RegExp.
+ */
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+/**
+ * Builds a zod schema for an optional query filter where an empty string means "any".
+ * @param {readonly string[]} values - Allowed values.
+ * @returns {import('zod').ZodType}
+ */
 const optionalEnum = (values) => z.enum(['', ...values]).optional().default('');
 
 export const listQuerySchema = z.object({
@@ -57,7 +67,13 @@ const SORTS = {
   '': { _id: -1 },
 };
 
-// The body stays a plain array for compatibility; paging info is sent in headers.
+/**
+ * GET /api/products - Lists products with filters, search, sorting and paging.
+ * The body stays a plain array for compatibility; totals are sent in the
+ * `X-Total-Count`, `X-Page` and `X-Page-Count` headers. Reviews are left out.
+ * @param {import('express').Request} req - `req.validatedQuery` holds the parsed filters.
+ * @param {import('express').Response} res
+ */
 export const list = async (req, res) => {
   const { department, category, size, minPrice, maxPrice, searchKeyword, sortOrder, page, pageSize } =
     req.validatedQuery;
@@ -88,7 +104,12 @@ export const list = async (req, res) => {
   res.send(products);
 };
 
-// The full taxonomy with live product counts, used to build store navigation.
+/**
+ * GET /api/products/catalog - Returns departments, categories and sizes with live
+ * product counts, used to build the store navigation.
+ * @param {import('express').Request} _req
+ * @param {import('express').Response} res
+ */
 export const catalog = async (_req, res) => {
   const counts = await Product.aggregate([
     { $group: { _id: { department: '$department', category: '$category' }, count: { $sum: 1 } } },
@@ -113,17 +134,34 @@ export const catalog = async (_req, res) => {
   });
 };
 
+/**
+ * GET /api/products/:id - Returns one product, including its reviews.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 404 when the product does not exist.
+ */
 export const getById = async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (!product) throw notFound('Product not found.');
   res.send(product);
 };
 
+/**
+ * POST /api/products (admin) - Creates a product from the validated body.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
 export const create = async (req, res) => {
   const product = await Product.create(req.body);
   res.status(201).send({ message: 'New Product Created', data: product });
 };
 
+/**
+ * PUT /api/products/:id (admin) - Replaces a product's fields with the validated body.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 404 when the product does not exist.
+ */
 export const update = async (req, res) => {
   const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
     returnDocument: 'after',
@@ -133,12 +171,25 @@ export const update = async (req, res) => {
   res.send({ message: 'Product Updated', data: product });
 };
 
+/**
+ * DELETE /api/products/:id (admin) - Deletes a product.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 404 when the product does not exist.
+ */
 export const remove = async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) throw notFound('Product not found.');
   res.send({ message: 'Product Deleted' });
 };
 
+/**
+ * POST /api/products/:id/reviews - Adds the signed-in user's review and updates the
+ * product's average rating. Each user can review a product once.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 404 when the product does not exist, 409 when already reviewed.
+ */
 export const addReview = async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (!product) throw notFound('Product not found.');

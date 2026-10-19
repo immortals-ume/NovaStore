@@ -8,6 +8,10 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { formatPrice } from '../lib.js';
 
+/**
+ * Product tile with image, name, brand, price and rating, linking to the product page.
+ * @param {{product: object}} props
+ */
 export function ProductCard({ product }) {
   const soldOut = product.countInStock <= 0;
   const lowStock = !soldOut && product.countInStock <= 10;
@@ -63,6 +67,11 @@ export function ProductCard({ product }) {
 
 const columns = { xs: 6, sm: 4, md: 3 };
 
+/**
+ * Responsive grid of product cards, with placeholder cards while loading.
+ * @param {{products?: object[], loading?: boolean, skeletons?: number, size?: object}} props
+ * `skeletons` is how many placeholders to show; `size` sets columns per breakpoint.
+ */
 export function ProductGrid({ products, loading, skeletons = 8, size = columns }) {
   return (
     <Grid container spacing={{ xs: 2, md: 3 }} rowSpacing={{ xs: 3, md: 5 }}>

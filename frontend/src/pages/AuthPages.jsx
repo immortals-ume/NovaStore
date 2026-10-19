@@ -11,13 +11,21 @@ import Typography from '@mui/material/Typography';
 import { errorText } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
-// Only allow same-site paths so the redirect parameter cannot send users elsewhere.
+/**
+ * Reads where to go after signing in from the `redirect` URL parameter.
+ * Only same-site paths are allowed so the link cannot send users to another site.
+ * @returns {string} A path on this site, `/` by default.
+ */
 const useRedirect = () => {
   const [params] = useSearchParams();
   const target = params.get('redirect') ?? '/';
   return target.startsWith('/') && !target.startsWith('//') ? target : '/';
 };
 
+/**
+ * Card layout shared by the sign-in and register pages.
+ * @param {{title: string, subtitle?: string, children: React.ReactNode, footer?: React.ReactNode}} props
+ */
 function AuthCard({ title, subtitle, children, footer }) {
   return (
     <Container maxWidth="xs" sx={{ py: { xs: 6, md: 10 } }}>
@@ -31,6 +39,11 @@ function AuthCard({ title, subtitle, children, footer }) {
   );
 }
 
+/**
+ * Runs an async form action and tracks its pending state and error.
+ * @param {(...args: any[]) => Promise<void>} action
+ * @returns {{submit: Function, error: unknown, setError: Function, pending: boolean}}
+ */
 function useSubmit(action) {
   const [error, setError] = useState(null);
   const [pending, setPending] = useState(false);
@@ -48,6 +61,9 @@ function useSubmit(action) {
   return { submit, error, setError, pending };
 }
 
+/**
+ * /signin - email and password sign-in.
+ */
 export function SignInPage() {
   const { user, signIn } = useAuth();
   const navigate = useNavigate();
@@ -76,6 +92,9 @@ export function SignInPage() {
   );
 }
 
+/**
+ * /register - create a customer account.
+ */
 export function RegisterPage() {
   const { user, register } = useAuth();
   const navigate = useNavigate();

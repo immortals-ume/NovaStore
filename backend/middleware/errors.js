@@ -5,11 +5,20 @@ import { ZodError } from 'zod';
 import config from '../config.js';
 import { HttpError } from '../lib/httpError.js';
 
+/**
+ * Responds 404 with a JSON message for any route that did not match.
+ * @type {import('express').RequestHandler}
+ */
 export const notFoundHandler = (req, res) => {
   res.status(404).send({ message: `Route not found: ${req.method} ${req.originalUrl}` });
 };
 
-// Every error response has the shape { message, details? }.
+/**
+ * Turns any thrown error into a JSON response shaped `{ message, details? }`.
+ * Known errors (validation, HttpError, upload, database) keep their meaning;
+ * anything unexpected is logged and returned as a generic 500.
+ * @type {import('express').ErrorRequestHandler}
+ */
 export const errorHandler = (err, req, res, _next) => {
   if (err instanceof ZodError) {
     return res.status(400).send({

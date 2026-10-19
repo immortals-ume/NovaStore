@@ -1,5 +1,13 @@
-// Creates the admin account and, when the catalog is empty, sample products.
-// Usage: ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='long-secret' npm run seed [-- --reset-products]
+/**
+ * Seed script: creates or updates the admin account and, when the catalog is empty,
+ * inserts the sample products.
+ *
+ * The admin credentials are read from ADMIN_EMAIL and ADMIN_PASSWORD in your `.env`
+ * (never committed). Without them the admin step is skipped.
+ *
+ * Usage: npm run seed            add sample products if the catalog is empty
+ *        npm run seed -- --reset-products   replace all products with the samples
+ */
 import mongoose from 'mongoose';
 import config from '../config.js';
 import User from '../models/user.js';

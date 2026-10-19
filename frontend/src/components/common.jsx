@@ -10,6 +10,10 @@ import Typography from '@mui/material/Typography';
 import { errorText } from '../api/client.js';
 import { formatDate, formatPrice } from '../lib.js';
 
+/**
+ * Centered spinner.
+ * @param {{label?: string}} props - Text read by screen readers.
+ */
 export function Loading({ label = 'Loading' }) {
   return (
     <Stack sx={{ alignItems: 'center', justifyContent: 'center', py: 12 }} role="status" aria-label={label}>
@@ -18,6 +22,10 @@ export function Loading({ label = 'Loading' }) {
   );
 }
 
+/**
+ * Error message with an optional retry button.
+ * @param {{error: unknown, onRetry?: () => void}} props
+ */
 export function ErrorState({ error, onRetry }) {
   return (
     <Alert
@@ -30,6 +38,10 @@ export function ErrorState({ error, onRetry }) {
   );
 }
 
+/**
+ * Placeholder shown when a list has nothing to show.
+ * @param {{icon?: React.ReactNode, title: string, description?: string, action?: React.ReactNode}} props
+ */
 export function EmptyState({ icon, title, description, action }) {
   return (
     <Stack sx={{ alignItems: 'center', textAlign: 'center', py: 10, px: 2, gap: 1.5 }}>
@@ -41,6 +53,10 @@ export function EmptyState({ icon, title, description, action }) {
   );
 }
 
+/**
+ * Page heading with optional small text above, subtitle and action button.
+ * @param {{overline?: string, title: string, subtitle?: string, action?: React.ReactNode}} props
+ */
 export function PageTitle({ overline, title, subtitle, action }) {
   return (
     <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', alignItems: { sm: 'flex-end' }, gap: 2, mb: 4 }}>
@@ -54,6 +70,10 @@ export function PageTitle({ overline, title, subtitle, action }) {
   );
 }
 
+/**
+ * Paid / Not paid badge for an order.
+ * @param {{order: object}} props
+ */
 export function PaymentChip({ order }) {
   return order.isPaid ? (
     <Chip size="small" color="success" label={`Paid ${formatDate(order.paidAt)}`} />
@@ -62,6 +82,10 @@ export function PaymentChip({ order }) {
   );
 }
 
+/**
+ * Delivered / Not delivered badge for an order.
+ * @param {{order: object}} props
+ */
 export function DeliveryChip({ order }) {
   return order.isDelivered ? (
     <Chip size="small" color="success" label={`Delivered ${formatDate(order.deliveredAt)}`} />
@@ -70,6 +94,10 @@ export function DeliveryChip({ order }) {
   );
 }
 
+/**
+ * Price summary: items, shipping, tax and total.
+ * @param {{totals: object, estimate?: boolean}} props - `estimate` labels the total as estimated.
+ */
 export function SummaryRows({ totals, estimate = false }) {
   const rows = [
     ['Subtotal', formatPrice(totals.itemsPrice)],
@@ -93,6 +121,10 @@ export function SummaryRows({ totals, estimate = false }) {
   );
 }
 
+/**
+ * Small "back" link with an arrow.
+ * @param {{to: string, children: React.ReactNode}} props
+ */
 export function BackLink({ to, children }) {
   return (
     <Button component={RouterLink} to={to} size="small" sx={{ ml: -1.5, mb: 2 }}>

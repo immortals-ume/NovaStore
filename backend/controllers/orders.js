@@ -29,13 +29,28 @@ export const createSchema = z.object({
 
 export const paySchema = z.object({ orderID: z.string().trim().min(1).max(64) });
 
+/**
+ * Loads the order in `req.params.id` if the current user owns it or is an admin.
+ * Other users' orders are reported as missing so ids cannot be probed.
+ * @param {import('express').Request} req
+ * @returns {Promise<import('mongoose').Document>} The order.
+ * @throws {HttpError} 404 when missing or not accessible.
+ */
 const findAccessibleOrder = async (req) => {
   const order = await Order.findById(req.params.id);
-  // Report other users' orders as missing so ids cannot be probed.
   if (!order || !isOwnerOrAdmin(req, order.user)) throw notFound('Order not found.');
   return order;
 };
 
+/**
+ * POST /api/orders - Places an order for the signed-in user.
+ * Product names, images and prices are copied from the database, duplicate
+ * product/size lines are merged, stock is reserved and totals are computed on the
+ * server. Stock is released again if saving the order fails.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 400 for missing products, invalid sizes or insufficient stock.
+ */
 export const create = async (req, res) => {
   const { orderItems, shipping, payment } = req.body;
 
@@ -82,18 +97,40 @@ export const create = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/orders (admin) - Lists every order, newest first, with the customer's name and email.
+ * @param {import('express').Request} _req
+ * @param {import('express').Response} res
+ */
 export const listAll = async (_req, res) => {
   res.send(await Order.find().populate('user', 'name email').sort({ createdAt: -1 }));
 };
 
+/**
+ * GET /api/orders/mine - Lists the signed-in user's orders, newest first.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
 export const listMine = async (req, res) => {
   res.send(await Order.find({ user: req.user._id }).sort({ createdAt: -1 }));
 };
 
+/**
+ * GET /api/orders/:id - Returns one order if the user owns it or is an admin.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
 export const getById = async (req, res) => {
   res.send(await findAccessibleOrder(req));
 };
 
+/**
+ * PUT /api/orders/:id/pay - Marks an order paid after verifying the PayPal payment.
+ * A PayPal payment can only be used for one order.
+ * @param {import('express').Request} req - `req.body.orderID` is the PayPal order id.
+ * @param {import('express').Response} res
+ * @throws {HttpError} 409 when the order or the payment was already used.
+ */
 export const pay = async (req, res) => {
   const order = await findAccessibleOrder(req);
   if (order.isPaid) throw conflict('Order is already paid.');
@@ -113,6 +150,12 @@ export const pay = async (req, res) => {
   res.send({ message: 'Order Paid.', order: paid });
 };
 
+/**
+ * PUT /api/orders/:id/deliver (admin) - Marks a paid order as delivered.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 404 when missing, 400 when the order is not paid.
+ */
 export const deliver = async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order) throw notFound('Order not found.');
@@ -124,6 +167,12 @@ export const deliver = async (req, res) => {
   res.send({ message: 'Order Delivered.', order });
 };
 
+/**
+ * DELETE /api/orders/:id (admin) - Deletes an order and returns undelivered items to stock.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @throws {HttpError} 404 when the order does not exist.
+ */
 export const remove = async (req, res) => {
   const order = await Order.findByIdAndDelete(req.params.id);
   if (!order) throw notFound('Order not found.');

@@ -5,8 +5,18 @@ const ITEMS_KEY = 'novastore.cart';
 const SHIPPING_KEY = 'novastore.shipping';
 const CartContext = createContext(null);
 
+/**
+ * @param {string} productId
+ * @param {string} [size]
+ * @returns {string} Key that identifies a cart line, so each size is its own line.
+ */
 const lineKey = (productId, size) => `${productId}:${size ?? ''}`;
 
+/**
+ * Provides the shopping bag (saved in localStorage), the saved shipping address
+ * and the bag drawer's open state. Quantities never exceed the product's stock.
+ * @param {{children: React.ReactNode}} props
+ */
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => storage.get(ITEMS_KEY, []));
   const [shipping, setShipping] = useState(() => storage.get(SHIPPING_KEY, null));
@@ -64,4 +74,8 @@ export function CartProvider({ children }) {
   return <CartContext value={value}>{children}</CartContext>;
 }
 
+/**
+ * @returns The bag: `items`, `count`, `shipping`, `drawerOpen` and actions
+ * `add`, `setQty`, `remove`, `clear`, `saveShipping`, `openDrawer`, `closeDrawer`.
+ */
 export const useCart = () => use(CartContext);

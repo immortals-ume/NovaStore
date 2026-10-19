@@ -19,6 +19,10 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { formatDate, formatPrice, shortId } from '../lib.js';
 
+/**
+ * PayPal checkout buttons for an unpaid order.
+ * @param {{order: object}} props
+ */
 function PaymentPanel({ order }) {
   const notify = useToast();
   const pay = usePayOrder(order._id);
@@ -69,6 +73,9 @@ function PaymentPanel({ order }) {
   );
 }
 
+/**
+ * /orders/:id - order details, status and payment.
+ */
 export default function OrderPage() {
   const { id } = useParams();
   const [params] = useSearchParams();

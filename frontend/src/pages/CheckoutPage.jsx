@@ -26,6 +26,10 @@ import { estimateTotals, formatPrice } from '../lib.js';
 const EMPTY_ADDRESS = { address: '', city: '', postalCode: '', country: '' };
 const STEPS = ['Shipping', 'Review & pay'];
 
+/**
+ * Step 1: shipping address form.
+ * @param {{initial?: object, onSubmit: (address: object) => void}} props
+ */
 function ShippingForm({ initial, onSubmit }) {
   const [form, setForm] = useState(initial ?? EMPTY_ADDRESS);
   const field = (name, label, props = {}) => (
@@ -61,6 +65,10 @@ function ShippingForm({ initial, onSubmit }) {
   );
 }
 
+/**
+ * Step 2: review address and items, then place the order.
+ * @param {{shipping: object, items: object[], onEdit: () => void, onPlace: () => void, placing: boolean, error: unknown}} props
+ */
 function Review({ shipping, items, onEdit, onPlace, placing, error }) {
   return (
     <Stack sx={{ gap: 3 }}>
@@ -109,6 +117,9 @@ function Review({ shipping, items, onEdit, onPlace, placing, error }) {
   );
 }
 
+/**
+ * /checkout - two-step checkout. Placing the order empties the bag and opens the order page for payment.
+ */
 export default function CheckoutPage() {
   const { items, shipping, saveShipping, clear } = useCart();
   const navigate = useNavigate();

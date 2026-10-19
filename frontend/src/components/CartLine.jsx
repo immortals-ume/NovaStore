@@ -10,6 +10,10 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { useCart } from '../context/CartContext.jsx';
 import { formatPrice } from '../lib.js';
 
+/**
+ * Square product image.
+ * @param {{src: string, alt: string, size?: number}} props - `size` is the width in pixels.
+ */
 export function ProductThumb({ src, alt, size = 88 }) {
   return (
     <Box
@@ -21,6 +25,10 @@ export function ProductThumb({ src, alt, size = 88 }) {
   );
 }
 
+/**
+ * Minus / plus control for a quantity between 1 and `max`.
+ * @param {{value: number, max: number, onChange: (qty: number) => void, size?: string}} props
+ */
 export function QuantityStepper({ value, max, onChange, size = 'small' }) {
   return (
     <Stack direction="row" sx={{ alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 999, width: 'fit-content' }}>
@@ -35,6 +43,10 @@ export function QuantityStepper({ value, max, onChange, size = 'small' }) {
   );
 }
 
+/**
+ * One bag line with image, size, price, quantity control and a remove button.
+ * @param {{item: object, onNavigate?: () => void}} props - `onNavigate` runs when the product link is clicked.
+ */
 export default function CartLine({ item, onNavigate }) {
   const { setQty, remove } = useCart();
   return (

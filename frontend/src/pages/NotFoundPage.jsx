@@ -3,6 +3,9 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import { EmptyState } from '../components/common.jsx';
 
+/**
+ * Shown for any URL that does not match a page.
+ */
 export default function NotFoundPage() {
   return (
     <Container>

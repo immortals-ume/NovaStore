@@ -31,6 +31,10 @@ import { useCart } from '../context/CartContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { formatDate, formatPrice } from '../lib.js';
 
+/**
+ * Product reviews and, for signed-in users, a form to add one.
+ * @param {{product: object}} props
+ */
 function Reviews({ product }) {
   const { user } = useAuth();
   const notify = useToast();
@@ -112,6 +116,10 @@ function Reviews({ product }) {
   );
 }
 
+/**
+ * Other products from the same department and category.
+ * @param {{product: object}} props
+ */
 function RelatedProducts({ product }) {
   const { data } = useProducts({ department: product.department, category: product.category, pageSize: 5 });
   const { data: more } = useProducts({ department: product.department, sortOrder: 'rating', pageSize: 9 });
@@ -127,12 +135,19 @@ function RelatedProducts({ product }) {
   );
 }
 
-// Keyed by id so size and quantity reset when moving between products.
+/**
+ * /product/:id - renders the product page, keyed by id so the chosen size and
+ * quantity reset when moving between products.
+ */
 export default function ProductRoute() {
   const { id } = useParams();
   return <ProductPage key={id} id={id} />;
 }
 
+/**
+ * Product details with size and quantity pickers and an add-to-bag button.
+ * @param {{id: string}} props - Product id.
+ */
 function ProductPage({ id }) {
   const { data: product, isLoading, error } = useProduct(id);
   const { data: catalog } = useCatalog();

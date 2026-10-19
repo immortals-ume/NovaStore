@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
 const BCRYPT_ROUNDS = 12;
+
+/**
+ * @param {string} value - A stored password.
+ * @returns {boolean} True when the value is already a bcrypt hash.
+ */
 const isBcryptHash = (value) => /^\$2[aby]\$\d{2}\$/.test(value);
 
 const userSchema = new mongoose.Schema(
@@ -24,14 +29,22 @@ const userSchema = new mongoose.Schema(
   },
 );
 
+/**
+ * Hashes the password with bcrypt before saving whenever it was changed.
+ */
 userSchema.pre('save', async function hashPassword() {
   if (this.isModified('password') && !isBcryptHash(this.password)) {
     this.password = await bcrypt.hash(this.password, BCRYPT_ROUNDS);
   }
 });
 
-// Accounts created before hashing was added still hold plaintext passwords;
-// they are verified once and upgraded to a bcrypt hash on that login.
+/**
+ * Checks a password against the stored one.
+ * Accounts created before hashing was added still hold plaintext passwords;
+ * they are compared in constant time and upgraded to a bcrypt hash on that login.
+ * @param {string} candidate - Password entered by the user.
+ * @returns {Promise<boolean>} True when the password matches.
+ */
 userSchema.methods.verifyPassword = async function verifyPassword(candidate) {
   if (isBcryptHash(this.password)) return bcrypt.compare(candidate, this.password);
 

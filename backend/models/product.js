@@ -30,6 +30,10 @@ const productSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/**
+ * Updates `numReviews` and the average `rating` (one decimal) from the current reviews.
+ * Call before saving after reviews change.
+ */
 productSchema.methods.recalculateRating = function recalculateRating() {
   this.numReviews = this.reviews.length;
   const total = this.reviews.reduce((sum, review) => sum + review.rating, 0);

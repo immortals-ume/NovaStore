@@ -62,16 +62,33 @@ const GARMENTS = {
   },
 };
 
+/**
+ * @param {string} hex - Color as `#rrggbb`.
+ * @returns {number} Relative brightness from 0 (black) to 1 (white).
+ */
 const luminance = (hex) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
 
+/**
+ * @param {string} hex - Color as `#rrggbb`.
+ * @param {number} amount - How much to darken, from 0 to 1.
+ * @returns {string} The darker color as `#rrggbb`.
+ */
 const darken = (hex, amount) =>
   `#${[1, 3, 5]
     .map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - amount)).toString(16).padStart(2, '0'))
     .join('')}`;
 
+/**
+ * Draws one garment as an SVG. Detail colors switch between dark and light so
+ * they stay visible on the garment color.
+ * @param {string} category - Category slug, picks the garment shape.
+ * @param {string} hex - Garment color as `#rrggbb`.
+ * @param {boolean} kids - Draw a smaller garment for kids products.
+ * @returns {string} SVG markup.
+ */
 const render = (category, hex, kids) => {
   const g = GARMENTS[category];
   const light = luminance(hex) > 0.6;

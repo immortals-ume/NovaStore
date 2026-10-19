@@ -4,6 +4,10 @@ import Snackbar from '@mui/material/Snackbar';
 
 const ToastContext = createContext(() => {});
 
+/**
+ * Shows short pop-up messages at the bottom of the screen for 4 seconds.
+ * @param {{children: React.ReactNode}} props
+ */
 export function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
   const notify = useCallback((message, severity = 'success') => setToast({ message, severity, id: Date.now() }), []);
@@ -27,4 +31,7 @@ export function ToastProvider({ children }) {
   );
 }
 
+/**
+ * @returns {(message: string, severity?: 'success' | 'info' | 'warning' | 'error') => void} Function that shows a message.
+ */
 export const useToast = () => use(ToastContext);

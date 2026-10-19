@@ -38,6 +38,10 @@ import { useCatalog } from '../api/hooks.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 
+/**
+ * The NovaStore logo, linking to the home page.
+ * @param {{onClick?: () => void}} props
+ */
 export function Logo({ onClick }) {
   return (
     <Link component={RouterLink} to="/" onClick={onClick} underline="none" color="inherit" sx={{ display: 'inline-flex', alignItems: 'baseline' }}>
@@ -51,6 +55,10 @@ export function Logo({ onClick }) {
   );
 }
 
+/**
+ * Product search field; submitting opens the shop with the search text.
+ * @param {{onDone?: () => void, autoFocus?: boolean}} props - `onDone` runs after a search is submitted.
+ */
 function SearchBox({ onDone, autoFocus }) {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
@@ -79,6 +87,9 @@ function SearchBox({ onDone, autoFocus }) {
   );
 }
 
+/**
+ * Button that switches between light and dark mode.
+ */
 function ColorModeToggle() {
   const { mode, systemMode, setMode } = useColorScheme();
   const current = mode === 'system' ? systemMode : mode;
@@ -93,6 +104,10 @@ function ColorModeToggle() {
   );
 }
 
+/**
+ * Account button: sign-in link when signed out, otherwise a menu with orders,
+ * profile, admin pages (for admins) and sign-out.
+ */
 function AccountMenu() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -165,6 +180,10 @@ function AccountMenu() {
   );
 }
 
+/**
+ * Drop-down listing a department's categories with product counts.
+ * @param {{department: object, onClose: () => void}} props
+ */
 function MegaMenu({ department, onClose }) {
   return (
     <Paper
@@ -204,6 +223,10 @@ function MegaMenu({ department, onClose }) {
   );
 }
 
+/**
+ * Side menu for small screens with search and all departments and categories.
+ * @param {{open: boolean, onClose: () => void, departments: object[]}} props
+ */
 function MobileNav({ open, onClose, departments }) {
   const { user } = useAuth();
   return (
@@ -250,6 +273,9 @@ function MobileNav({ open, onClose, departments }) {
   );
 }
 
+/**
+ * Top bar: logo, department navigation, search, colour mode, account and bag.
+ */
 export default function Header() {
   const { data: catalog } = useCatalog();
   const { count, openDrawer } = useCart();

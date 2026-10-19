@@ -40,6 +40,10 @@ const SORTS = [
   ['rating', 'Top rated'],
 ];
 
+/**
+ * Titled group inside the filter panel.
+ * @param {{title: string, children: React.ReactNode}} props
+ */
 function FilterSection({ title, children }) {
   return (
     <Box sx={{ py: 2.5 }}>
@@ -49,6 +53,10 @@ function FilterSection({ title, children }) {
   );
 }
 
+/**
+ * Category, size and price filters. Filter values live in the URL.
+ * @param {{categories: object[], sizes: string[], params: URLSearchParams, setParam: Function, clearAll: () => void}} props
+ */
 function Filters({ categories, sizes, params, setParam, clearAll }) {
   const category = params.get('category') ?? '';
   const size = params.get('size') ?? '';
@@ -126,6 +134,9 @@ function Filters({ categories, sizes, params, setParam, clearAll }) {
   );
 }
 
+/**
+ * /shop and /shop/:department - product list with filters, sorting, search and paging.
+ */
 export default function ShopPage() {
   const { department = '' } = useParams();
   const [params, setParams] = useSearchParams();

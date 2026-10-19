@@ -10,6 +10,13 @@ import { useCatalog } from '../api/hooks.js';
 import Header, { Logo } from './Header.jsx';
 import CartDrawer from './CartDrawer.jsx';
 
+/**
+ * @param {{title: string, links: Array<{label: string, to: string}>}} props
+ */
+
+/**
+ * Site footer with shop, help and account links.
+ */
 function FooterColumn({ title, links }) {
   return (
     <Stack sx={{ gap: 1 }}>
@@ -65,6 +72,9 @@ function Footer() {
   );
 }
 
+/**
+ * Page frame shared by every page: header, page content, footer and bag drawer.
+ */
 export default function Layout() {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

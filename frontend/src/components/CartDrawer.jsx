@@ -13,6 +13,9 @@ import { useCart } from '../context/CartContext.jsx';
 import { FREE_SHIPPING_THRESHOLD, estimateTotals, formatPrice } from '../lib.js';
 import CartLine from './CartLine.jsx';
 
+/**
+ * Slide-out panel showing the bag's items, an estimated total and a checkout button.
+ */
 export default function CartDrawer() {
   const { items, count, drawerOpen, closeDrawer } = useCart();
   const navigate = useNavigate();

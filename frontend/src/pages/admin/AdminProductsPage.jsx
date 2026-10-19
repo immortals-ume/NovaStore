@@ -41,6 +41,11 @@ import { formatPrice } from '../../lib.js';
 
 const ADULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const KIDS_SIZES = ['2-3Y', '4-5Y', '6-7Y', '8-9Y', '10-11Y', '12-13Y'];
+
+/**
+ * @param {string} department - Department slug.
+ * @returns {string[]} The sizes sold in that department.
+ */
 const sizesFor = (department) => (department === 'kids' ? KIDS_SIZES : ADULT_SIZES);
 
 const blankProduct = {
@@ -56,6 +61,10 @@ const blankProduct = {
   description: '',
 };
 
+/**
+ * Dialog to create or edit a product, including image upload.
+ * @param {{product: object, catalog: object, onClose: () => void}} props
+ */
 function ProductDialog({ product, catalog, onClose }) {
   const notify = useToast();
   const save = useSaveProduct();
@@ -180,6 +189,10 @@ function ProductDialog({ product, catalog, onClose }) {
   );
 }
 
+/**
+ * Dialog asking the admin to confirm deleting a product.
+ * @param {{product: object | null, onClose: () => void}} props
+ */
 function ConfirmDelete({ product, onClose }) {
   const notify = useToast();
   const remove = useDeleteProduct();
@@ -205,6 +218,9 @@ function ConfirmDelete({ product, onClose }) {
   );
 }
 
+/**
+ * /admin/products - product table with create, edit and delete.
+ */
 export default function AdminProductsPage() {
   const { data: catalog } = useCatalog();
   const { data, isLoading, error } = useProducts({ pageSize: 100, sortOrder: 'newest' });

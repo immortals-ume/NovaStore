@@ -9,6 +9,11 @@ const server = createApp().listen(config.port, () => {
   console.log(`NovaStore API listening on http://localhost:${config.port} (${config.env})`);
 });
 
+/**
+ * Closes the HTTP server and the MongoDB connection, then exits.
+ * @param {string} signal - The signal that triggered shutdown (SIGINT or SIGTERM).
+ * @returns {Promise<void>}
+ */
 const shutdown = async (signal) => {
   console.log(`${signal} received, shutting down...`);
   server.close();

@@ -21,6 +21,18 @@ export const COLORS = {
   grey: { name: 'Heather Grey', hex: '#a3a3a3' },
 };
 
+/**
+ * Builds one sample product. Kids products get kids sizes and the smaller illustration.
+ * @param {string} department - Department slug.
+ * @param {string} category - Category slug.
+ * @param {string} color - Key into COLORS.
+ * @param {string} name
+ * @param {string} brand
+ * @param {number} price
+ * @param {number} countInStock
+ * @param {string} description
+ * @returns {object} Product data ready to insert.
+ */
 const p = (department, category, color, name, brand, price, countInStock, description) => ({
   department,
   category,

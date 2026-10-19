@@ -22,6 +22,9 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { formatDate, formatPrice, shortId } from '../lib.js';
 
+/**
+ * Form to change the user's name, email or password.
+ */
 function ProfileForm() {
   const { user, updateProfile } = useAuth();
   const notify = useToast();
@@ -67,6 +70,9 @@ function ProfileForm() {
   );
 }
 
+/**
+ * List of the user's orders with payment and delivery status.
+ */
 function OrderHistory() {
   const { data: orders, isLoading, error } = useMyOrders();
   const navigate = useNavigate();
@@ -117,6 +123,9 @@ function OrderHistory() {
   );
 }
 
+/**
+ * /account - the user's profile and order history.
+ */
 export default function AccountPage() {
   const { user } = useAuth();
   return (

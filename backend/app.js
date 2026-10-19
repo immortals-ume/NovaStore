@@ -9,6 +9,11 @@ import { errorHandler, notFoundHandler } from './middleware/errors.js';
 
 const frontendBuild = path.resolve(import.meta.dirname, '../frontend/build');
 
+/**
+ * Builds the Express app: security headers, JSON body parsing, the /api routes,
+ * uploaded files, the built frontend (when present) and JSON error handling.
+ * @returns {import('express').Express} The configured app, not yet listening.
+ */
 export const createApp = () => {
   const app = express();
 

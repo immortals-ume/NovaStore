@@ -16,6 +16,11 @@ const AccountPage = lazy(() => import('./pages/AccountPage.jsx'));
 const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage.jsx'));
 const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage.jsx'));
 
+/**
+ * Route guard: sends signed-out users to sign-in (returning here afterwards)
+ * and non-admins away from admin pages.
+ * @param {{admin?: boolean}} props - Set `admin` to require an admin account.
+ */
 function RequireAuth({ admin = false }) {
   const { user } = useAuth();
   const location = useLocation();
@@ -28,6 +33,9 @@ function RequireAuth({ admin = false }) {
   );
 }
 
+/**
+ * Scrolls to the top of the page whenever the route changes.
+ */
 function ScrollToTop() {
   const { pathname } = useLocation();
   // Braces matter: newer browsers return a Promise from scrollTo, which React rejects as a cleanup.
@@ -37,6 +45,9 @@ function ScrollToTop() {
   return null;
 }
 
+/**
+ * Defines all pages and their URLs.
+ */
 export default function App() {
   return (
     <>

@@ -27,5 +27,11 @@ export const SIZES = [...ADULT_SIZES, ...KIDS_SIZES];
 export const DEPARTMENT_SLUGS = DEPARTMENTS.map((d) => d.slug);
 export const CATEGORY_SLUGS = CATEGORIES.map((c) => c.slug);
 
+/**
+ * Checks whether a clothing category is sold in a department (e.g. dresses are not sold in men).
+ * @param {string} category - Category slug, e.g. `dresses`.
+ * @param {string} department - Department slug, e.g. `men`.
+ * @returns {boolean} True when the category belongs to the department.
+ */
 export const categoryAllowedIn = (category, department) =>
   CATEGORIES.find((c) => c.slug === category)?.departments.includes(department) ?? false;

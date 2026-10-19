@@ -14,8 +14,17 @@ import SpaOutlinedIcon from '@mui/icons-material/SpaOutlined';
 import { useCatalog, useProducts } from '../api/hooks.js';
 import { ProductGrid } from '../components/ProductCard.jsx';
 
+/**
+ * @param {object[]} products
+ * @param {(product: object) => boolean} predicate
+ * @returns {string | undefined} Image of the first matching product.
+ */
 const firstImage = (products, predicate) => products.find(predicate)?.image;
 
+/**
+ * Section title with a "view all" link.
+ * @param {{title: string, to: string, linkLabel?: string}} props
+ */
 function SectionHeader({ title, to, linkLabel = 'View all' }) {
   return (
     <Stack direction="row" sx={{ alignItems: 'flex-end', justifyContent: 'space-between', mb: 3 }}>
@@ -27,6 +36,10 @@ function SectionHeader({ title, to, linkLabel = 'View all' }) {
   );
 }
 
+/**
+ * Large banner at the top of the home page.
+ * @param {{products: object[]}} props - Used to pick banner images.
+ */
 function Hero({ products }) {
   const picks = ['outerwear', 'dresses', 'knitwear'].map((c) => firstImage(products, (p) => p.category === c));
   return (
@@ -70,6 +83,10 @@ function Hero({ products }) {
   );
 }
 
+/**
+ * Image tiles linking to each department.
+ * @param {{departments: object[], products: object[]}} props
+ */
 function DepartmentTiles({ departments, products }) {
   const featured = { women: 'dresses', men: 'outerwear', kids: 'knitwear' };
   return (
@@ -107,6 +124,10 @@ function DepartmentTiles({ departments, products }) {
   );
 }
 
+/**
+ * Row of category tiles linking to the shop.
+ * @param {{categories: object[], products: object[]}} props
+ */
 function CategoryStrip({ categories, products }) {
   return (
     <Box
@@ -149,6 +170,9 @@ const PROMISES = [
   [LockOutlinedIcon, 'Secure checkout', 'Pay safely with PayPal.'],
 ];
 
+/**
+ * / - home page with banner, departments, categories and new arrivals.
+ */
 export default function HomePage() {
   const { data: catalog } = useCatalog();
   const { data: all, isLoading } = useProducts({ pageSize: 100 });

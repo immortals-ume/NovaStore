@@ -37,6 +37,10 @@ const FILTERS = {
   delivered: (o) => o.isDelivered,
 };
 
+/**
+ * Dialog asking the admin to confirm deleting an order.
+ * @param {{order: object | null, onClose: () => void}} props
+ */
 function ConfirmDelete({ order, onClose }) {
   const notify = useToast();
   const remove = useDeleteOrder();
@@ -64,6 +68,9 @@ function ConfirmDelete({ order, onClose }) {
   );
 }
 
+/**
+ * /admin/orders - all orders with status filters, mark-delivered and delete actions.
+ */
 export default function AdminOrdersPage() {
   const { data: orders, isLoading, error } = useAllOrders();
   const deliver = useDeliverOrder();

@@ -1,8 +1,16 @@
 import config from '../config.js';
 import { HttpError, badRequest } from '../lib/httpError.js';
 
+/**
+ * @returns {boolean} True when a PayPal client secret is set, so payments can be verified.
+ */
 const isConfigured = () => Boolean(config.paypal.clientSecret);
 
+/**
+ * Gets an OAuth access token from PayPal using the client id and secret.
+ * @returns {Promise<string>} The access token.
+ * @throws {HttpError} 502 when PayPal rejects the credentials.
+ */
 const getAccessToken = async () => {
   const { clientId, clientSecret, apiBase } = config.paypal;
   const res = await fetch(`${apiBase}/v1/oauth2/token`, {
@@ -21,6 +29,10 @@ const getAccessToken = async () => {
 /**
  * Confirms with PayPal that `paypalOrderId` was captured for exactly `expectedTotal` USD.
  * Without a client secret (local sandbox use) the check is skipped outside production.
+ * @param {string} paypalOrderId - The order id returned by the PayPal checkout button.
+ * @param {number} expectedTotal - The order total in USD.
+ * @returns {Promise<{id: string, status: string, payerID?: string, verified: boolean}>} Payment details to store.
+ * @throws {HttpError} 400 when the payment is missing, incomplete or for the wrong amount; 502/503 when PayPal is unavailable or not configured.
  */
 export const verifyPayment = async (paypalOrderId, expectedTotal) => {
   if (!isConfigured()) {

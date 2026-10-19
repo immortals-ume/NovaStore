@@ -9,6 +9,11 @@ const AuthContext = createContext(null);
 const initialUser = storage.get(KEY, null);
 setAuthToken(initialUser?.token ?? null);
 
+/**
+ * Provides the signed-in user and sign-in, register, profile update and sign-out actions.
+ * The user (with token) is kept in localStorage so sessions survive reloads.
+ * @param {{children: React.ReactNode}} props
+ */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(initialUser);
   const queryClient = useQueryClient();
@@ -44,4 +49,7 @@ export function AuthProvider({ children }) {
   return <AuthContext value={value}>{children}</AuthContext>;
 }
 
+/**
+ * @returns {{user: object | null, signIn: Function, register: Function, updateProfile: Function, signOut: Function}}
+ */
 export const useAuth = () => use(AuthContext);
