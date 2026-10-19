@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import Product from '../models/product.js';
 import { conflict, notFound } from '../lib/httpError.js';
+import { searchProducts } from '../services/productSearch.js';
 import {
   CATEGORIES,
   CATEGORY_SLUGS,
@@ -9,13 +10,6 @@ import {
   SIZES,
   categoryAllowedIn,
 } from '../lib/catalog.js';
-
-/**
- * Escapes regex special characters so user search text is matched literally.
- * @param {string} text - Raw search text.
- * @returns {string} Text safe to use inside a RegExp.
- */
-const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Builds a zod schema for an optional query filter where an empty string means "any".
@@ -59,14 +53,6 @@ export const reviewSchema = z.object({
   comment: z.string().trim().min(1).max(2000),
 });
 
-const SORTS = {
-  lowest: { price: 1, _id: -1 },
-  highest: { price: -1, _id: -1 },
-  rating: { rating: -1, _id: -1 },
-  newest: { _id: -1 },
-  '': { _id: -1 },
-};
-
 /**
  * GET /api/products - Lists products with filters, search, sorting and paging.
  * The body stays a plain array for compatibility; totals are sent in the
@@ -75,27 +61,8 @@ const SORTS = {
  * @param {import('express').Response} res
  */
 export const list = async (req, res) => {
-  const { department, category, size, minPrice, maxPrice, searchKeyword, sortOrder, page, pageSize } =
-    req.validatedQuery;
-  const search = searchKeyword && { $regex: escapeRegex(searchKeyword), $options: 'i' };
-  const filter = {
-    ...(department && { department }),
-    ...(category && { category }),
-    ...(size && { sizes: size }),
-    ...((minPrice != null || maxPrice != null) && {
-      price: { ...(minPrice != null && { $gte: minPrice }), ...(maxPrice != null && { $lte: maxPrice }) },
-    }),
-    ...(search && { $or: [{ name: search }, { brand: search }] }),
-  };
-  const [products, total] = await Promise.all([
-    Product.find(filter)
-      .select('-reviews')
-      .sort(SORTS[sortOrder])
-      .skip((page - 1) * pageSize)
-      .limit(pageSize)
-      .lean(),
-    Product.countDocuments(filter),
-  ]);
+  const { page, pageSize } = req.validatedQuery;
+  const { products, total } = await searchProducts(req.validatedQuery);
   res.set({
     'X-Total-Count': String(total),
     'X-Page': String(page),
