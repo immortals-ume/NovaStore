@@ -1,15 +1,19 @@
-# NovaStore - React & Node - Full ECommerce Site
+# NovaStore — React & Node Clothing Store
 
-### Technologies Used :
+[![CI](https://github.com/immortals-ume/NovaStore/actions/workflows/ci.yml/badge.svg)](https://github.com/immortals-ume/NovaStore/actions/workflows/ci.yml)
 
-- HTML5 and CSS3: Semantic Elements, CSS Grid, Flexbox
-- React: Components, Props, Events, Hooks, Router, Axios
-- Redux: Store, Reducers, Actions
-- Node & Express: Web API, Body Parser, File Upload, JWT
-- MongoDB: Mongoose, Aggregation
-- Development: ESLint, Babel, Git, Github,
-- Deployment: Heroku
-  
+A full-stack e-commerce site for clothing: browse by department and category, pick a size, check out with PayPal,
+and manage products and orders as an admin.
+
+### Tech stack
+
+- **Frontend:** React 19, Material UI 9, React Router, TanStack Query, Vite
+- **Backend:** Node.js 22, Express 5, Mongoose 9, zod validation, JWT auth, Helmet, rate limiting
+- **Database:** MongoDB 8 (Docker Compose for local development)
+- **Payments & uploads:** PayPal, local disk or Amazon S3
+- **Tooling:** ESLint (flat config), node:test + Supertest, GitHub Actions CI
+- **Deployment:** Heroku (`Procfile`)
+
 ## Run Locally
 
 Requires **Node.js 22+** and MongoDB (local install or Docker).
@@ -17,8 +21,8 @@ Requires **Node.js 22+** and MongoDB (local install or Docker).
 ### 1. Clone and configure
 
 ```
-$ git clone https://github.com/immortals-ume/node-react-ecommerce.git
-$ cd node-react-ecommerce
+$ git clone https://github.com/immortals-ume/NovaStore.git
+$ cd NovaStore
 $ cp .env.example .env      # then set JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
 ```
 
@@ -50,7 +54,7 @@ $ npm run dev      # http://localhost:3000, proxies /api and /uploads to :5001
 ### 5. Sign in
 
 - Open http://localhost:3000/signin and use the admin credentials from `.env`
-- Manage products at http://localhost:3000/products
+- Manage products at http://localhost:3000/admin/products and orders at http://localhost:3000/admin/orders
 
 ## Frontend
 
@@ -90,3 +94,13 @@ API notes:
 - Order prices, tax and shipping are computed by the server; client-sent prices are ignored.
 - `PUT /api/orders/:id/pay` verifies the payment with PayPal when `PAYPAL_CLIENT_SECRET` is set.
 - `PUT /api/orders/:id/deliver` (admin) marks a paid order delivered.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `master`:
+
+- **Backend:** `npm install`, `npm run lint`, `npm test` on Node 22
+- **Frontend:** `npm install` and `npm run build` in `frontend/`
+
+Lockfiles (`package-lock.json`) are not committed, so CI installs the latest versions allowed by the
+ranges in `package.json`.
