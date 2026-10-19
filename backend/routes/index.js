@@ -7,6 +7,7 @@ import * as users from '../controllers/users.js';
 import * as products from '../controllers/products.js';
 import * as orders from '../controllers/orders.js';
 import * as uploads from '../controllers/uploads.js';
+import * as assistant from '../controllers/assistant.js';
 
 /**
  * Limits sign-in and registration attempts per IP to slow down password guessing.
@@ -61,6 +62,24 @@ const uploadRoutes = Router()
   .post('/s3', uploads.parseImage, uploads.uploadS3);
 
 /**
+ * Limits shopping assistant messages per IP, since every message calls the Claude API.
+ */
+const assistantLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: config.assistant.rateLimit,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'You have sent a lot of messages. Please wait a few minutes and try again.' },
+});
+
+/**
+ * /api/assistant - the AI shopping assistant. Public; rate limited per IP.
+ */
+const assistantRoutes = Router()
+  .get('/status', assistant.status)
+  .post('/chat', assistantLimiter, validate(assistant.chatSchema), assistant.chat);
+
+/**
  * All API routes, mounted at /api. Also exposes the public PayPal client id and a health check.
  */
 export default Router()
@@ -68,5 +87,6 @@ export default Router()
   .use('/products', productRoutes)
   .use('/orders', orderRoutes)
   .use('/uploads', uploadRoutes)
+  .use('/assistant', assistantRoutes)
   .get('/config/paypal', (_req, res) => res.send(config.paypal.clientId))
   .get('/health', (_req, res) => res.send({ status: 'ok' }));

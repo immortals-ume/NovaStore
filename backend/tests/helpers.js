@@ -9,6 +9,9 @@ import request from 'supertest';
 // Config is read at import time, so the environment must be set before the app loads.
 process.env.UPLOAD_DIR = await mkdtemp(path.join(tmpdir(), 'novastore-uploads-'));
 process.env.AUTH_RATE_LIMIT = '1000';
+// Enables the shopping assistant; tests swap in a fake client, so no real API calls are made.
+process.env.ANTHROPIC_API_KEY = 'test-key';
+process.env.ASSISTANT_RATE_LIMIT = '1000';
 
 const { createApp } = await import('../app.js');
 const { default: User } = await import('../models/user.js');

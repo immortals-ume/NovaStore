@@ -16,6 +16,9 @@ const env = z
     S3_BUCKET: z.string().optional(),
     S3_REGION: z.string().default('us-east-1'),
     AUTH_RATE_LIMIT: z.coerce.number().int().positive().default(20),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    ASSISTANT_MODEL: z.string().default('claude-opus-5-5'),
+    ASSISTANT_RATE_LIMIT: z.coerce.number().int().positive().default(30),
   })
   .parse(process.env);
 
@@ -50,6 +53,12 @@ const config = Object.freeze({
     s3Region: env.S3_REGION,
   },
   authRateLimit: env.AUTH_RATE_LIMIT,
+  assistant: {
+    // The shopping assistant is switched off until an API key is configured.
+    enabled: Boolean(env.ANTHROPIC_API_KEY),
+    model: env.ASSISTANT_MODEL,
+    rateLimit: env.ASSISTANT_RATE_LIMIT,
+  },
 });
 
 export default config;
