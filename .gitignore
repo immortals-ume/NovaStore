@@ -33,3 +33,6 @@ yarn-lock.json
 frontend/yarn-lock.json
 
 .idea
+
+# lockfiles are not committed
+package-lock.json
