@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { useCatalog } from '../api/hooks.js';
 import Header, { Logo } from './Header.jsx';
 import CartDrawer from './CartDrawer.jsx';
+import ChatWidget from './ChatWidget.jsx';
 
 /**
  * @param {{title: string, links: Array<{label: string, to: string}>}} props
@@ -73,7 +74,7 @@ function Footer() {
 }
 
 /**
- * Page frame shared by every page: header, page content, footer and bag drawer.
+ * Page frame shared by every page: header, page content, footer, bag drawer and shopping assistant.
  */
 export default function Layout() {
   return (
@@ -84,6 +85,7 @@ export default function Layout() {
       </Box>
       <Footer />
       <CartDrawer />
+      <ChatWidget />
     </Box>
   );
 }

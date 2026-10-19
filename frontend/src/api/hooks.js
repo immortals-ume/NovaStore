@@ -147,3 +147,9 @@ export const uploadImage = (file) => {
   form.append('image', file);
   return request('/api/uploads', { method: 'POST', body: form }).then((r) => r.data);
 };
+
+/**
+ * Checks whether the AI shopping assistant is switched on (cached for the session).
+ */
+export const useAssistantStatus = () =>
+  useQuery({ queryKey: ['assistant-status'], queryFn: () => api.get('/api/assistant/status'), staleTime: Infinity, retry: false });

@@ -95,6 +95,24 @@ API notes:
 - `PUT /api/orders/:id/pay` verifies the payment with PayPal when `PAYPAL_CLIENT_SECRET` is set.
 - `PUT /api/orders/:id/deliver` (admin) marks a paid order delivered.
 
+## AI shopping assistant
+
+A chat button in the bottom-right corner opens **Nova**, a shopping assistant powered by Claude
+(`claude-opus-5-5` by default). Shoppers can ask for products ("a warm jacket under $150"), sizes or
+store policies; replies stream in and suggested products appear as clickable cards.
+
+- **Turn it on:** set `ANTHROPIC_API_KEY` in `.env`. Without a key the chat button is hidden and
+  `POST /api/assistant/chat` returns 503.
+- **How it works:** `backend/services/assistant.js` gives Claude four read-only tools that query the real catalog
+  (`search_products`, `get_product`, `list_catalog`, `recommend_products`). Claude cannot change carts, orders or
+  accounts. Prices and stock always come from the database.
+- **Settings:** `ASSISTANT_MODEL` changes the model; `ASSISTANT_RATE_LIMIT` caps messages per IP every 15 minutes
+  (default 30). Each message is a paid Claude API call.
+- **Safety:** if Claude declines a request, it is retried on Anthropic's recommended fallback model
+  (`fallbacks: "default"`); if that also declines, the shopper sees a polite message.
+- **API:** `GET /api/assistant/status` → `{ enabled }`; `POST /api/assistant/chat` with
+  `{ messages: [{ role, content }] }` streams server-sent events: `text`, `reset`, `products`, `error`, `done`.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every pull request and on pushes to `master`:
